@@ -16,7 +16,8 @@ app.get('/', (req, res) => {
 
 // Mount the new authentication router
 app.use('/api/auth', require('./routes/auth'));
-
+// Mount the new questions router
+app.use('/api/questions', require('./routes/questions'));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
