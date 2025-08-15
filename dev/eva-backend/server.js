@@ -8,6 +8,10 @@ const app = express();
 
 // Body parser middleware to accept JSON
 app.use(express.json());
+// Mount the new quizzes router
+app.use('/api/quizzes', require('./routes/quizzes'));
+// Mount the new submissions router
+app.use('/api/submissions', require('./routes/submissions'));
 
 // A simple test route to confirm the server is working
 app.get('/', (req, res) => {
