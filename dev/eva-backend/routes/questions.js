@@ -6,20 +6,21 @@ const {
   deleteQuestion,
 } = require('../controllers/questions');
 
-// Include our middleware
-const { protect } = require('../middleware/auth');
+// Import both middleware functions
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes below will use the 'protect' middleware
+// Protect all routes in this file (user must be logged in)
 router.use(protect);
 
+// Now, specify which roles can access which routes
 router.route('/')
     .get(getQuestions)
-    .post(createQuestion);
+    .post(authorize('teacher', 'school_admin'), createQuestion);
 
 router.route('/:id')
-    .put(updateQuestion)
-    .delete(deleteQuestion);
+    .put(authorize('teacher', 'school_admin'), updateQuestion)
+    .delete(authorize('teacher', 'school_admin'), deleteQuestion);
 
 module.exports = router;
