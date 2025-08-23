@@ -11,7 +11,7 @@ app.use(express.json());
 // Mount the new quizzes router
 app.use('/api/quizzes', require('./routes/quizzes'));
 // Mount the new submissions router
-app.use('/api/submissions', require('./routes/submissions'));
+app.use('/api/submissions', require('./routes/submission'));
 // Mount the new AI router
 app.use('/api/ai', require('./routes/ai'));
 // Mount the new leaderboard router
