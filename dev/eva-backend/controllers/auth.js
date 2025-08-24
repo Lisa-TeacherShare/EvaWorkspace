@@ -7,6 +7,12 @@ exports.register = async (req, res, next) => {
   try {
     const { fullName, email, password, accountType } = req.body;
 
+    // Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        return res.status(400).json({ success: false, error: 'User already exists' });
+    }
+
     // Create user
     const user = await User.create({
       fullName,
@@ -24,6 +30,11 @@ exports.register = async (req, res, next) => {
     });
 
   } catch (err) {
+    // Provide a more specific error if a required field is missing
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map(val => val.message).join(', ');
+        return res.status(400).json({ success: false, error: message });
+    }
     res.status(400).json({ success: false, error: err.message });
   }
 };
@@ -64,5 +75,26 @@ exports.login = async (req, res, next) => {
     
   } catch (err) {
      res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+exports.getMe = async (req, res, next) => {
+  try {
+    // req.user is set by our 'protect' middleware
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };

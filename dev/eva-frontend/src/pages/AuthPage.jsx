@@ -1,20 +1,19 @@
 // src/pages/AuthPage.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const AuthPage = () => {
-  // State to toggle between Login and Register views
   const [isLoginView, setIsLoginView] = useState(true);
-
-  // State for all form fields
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    password: ''
+    password: '',
+    accountType: 'premium'
   });
-
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,17 +27,27 @@ const AuthPage = () => {
     const endpoint = isLoginView ? '/api/auth/login' : '/api/auth/register';
     const url = `http://localhost:5000${endpoint}`;
 
+    const payload = isLoginView
+      ? { email: formData.email, password: formData.password }
+      : { ...formData };
+
     try {
-      const response = await axios.post(url, formData);
+      const response = await axios.post(url, payload);
 
       if (isLoginView) {
         const { token } = response.data;
-        console.log('Login successful! Token:', token);
-        alert('Login successful! Check the console for your token.');
-        // We will handle saving the token and redirecting next
+        
+        // --- THIS IS THE KEY CHANGE ---
+        // 1. Save the token to the browser's local storage
+        localStorage.setItem('eva-token', token);
+
+        // 2. Redirect the user to the dashboard
+        navigate('/dashboard');
+        // --- END OF CHANGE ---
+
       } else {
         setSuccess('Registration successful! Please log in.');
-        setIsLoginView(true); // Switch to login view after successful registration
+        setIsLoginView(true);
       }
     } catch (err) {
       const errorMessage = err.response?.data?.error || 'An error occurred.';
@@ -47,6 +56,7 @@ const AuthPage = () => {
     }
   };
 
+  // The rest of your component's JSX remains the same...
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -58,14 +68,31 @@ const AuthPage = () => {
           {success && <p className="bg-green-500 text-white text-center p-2 rounded-md mb-4">{success}</p>}
 
           {!isLoginView && (
-            <div className="mb-4">
-              <label className="block text-gray-400 mb-2" htmlFor="fullName">Full Name</label>
-              <input
-                type="text" id="fullName" name="fullName"
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                onChange={handleChange} required
-              />
-            </div>
+            <>
+              <div className="mb-4">
+                <label className="block text-gray-400 mb-2" htmlFor="fullName">Full Name</label>
+                <input
+                  type="text" id="fullName" name="fullName"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  onChange={handleChange} required
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-gray-400 mb-2" htmlFor="accountType">Account Type</label>
+                <select
+                  id="accountType" name="accountType"
+                  value={formData.accountType}
+                  onChange={handleChange}
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                >
+                  <option value="premium">Premium Student</option>
+                  <option value="lite">Lite Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="school_admin">School Admin</option>
+                </select>
+              </div>
+            </>
           )}
 
           <div className="mb-4">
