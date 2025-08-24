@@ -1,5 +1,5 @@
 const express = require('express');
-const { submitQuiz } = require('../controllers/submissions');
+const { submitQuiz } = require('../controllers/submission');
 
 // Include our middleware
 const { protect } = require('../middleware/auth');
