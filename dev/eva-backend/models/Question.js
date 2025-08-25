@@ -11,23 +11,25 @@ const QuestionSchema = new mongoose.Schema({
     required: [true, 'Please add a subject'],
   },
   topic: {
-    type: String,
-    required: [true, 'Please add a topic'],
+    type: [String], // Allows for multiple topics
+    required: false
   },
   examType: {
     type: String,
-    required: [true, 'Please specify the exam type (e.g., WAEC, JAMB)'],
-    enum: ['WAEC', 'NECO', 'JAMB', 'BECE', 'Common Entrance', 'Other'],
+    required: [true, 'Please specify the exam type'],
+    enum: ['WAEC', 'NECO', 'JAMB', 'BECE', 'Common Entrance', 'School Exam', 'Other'],
   },
   year: {
     type: Number,
   },
-  options: [
-    {
-      text: { type: String, required: true },
-      // isCorrect is not strictly needed if we store the correct answer's index
-    },
-  ],
+  options: {
+    type: [String],
+    required: true,
+  },
+  correctAnswer: {
+    type: String,
+    required: [true, 'Please add the correct answer text']
+  },
   correctAnswerIndex: {
     type: Number,
     required: [true, 'Please specify the index of the correct answer'],
@@ -42,7 +44,7 @@ const QuestionSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User', // Links to the teacher who created it
+    ref: 'User',
     required: true,
   },
   status: {

@@ -1,3 +1,5 @@
+// eva-backend/models/User.js
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -55,7 +57,8 @@ UserSchema.pre('save', async function (next) {
 
 // Method: Sign & get JWT token
 UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  // THE FIX: We are adding 'accountType: this.accountType' to the token
+  return jwt.sign({ id: this._id, accountType: this.accountType }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };

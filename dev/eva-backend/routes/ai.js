@@ -1,15 +1,19 @@
 const express = require('express');
-const { askQuestion, generatePersonalizedQuiz } = require('../controllers/ai');
+const { 
+  askQuestion, 
+  generatePersonalizedQuiz, 
+  generateQuizFromText 
+} = require('../controllers/ai');
 
-// Import our security middleware
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// This route is for the AI Homework Helper
+// --- Student (Premium) Routes ---
 router.route('/ask').post(protect, authorize('premium'), askQuestion);
-
-// This route is for the Personalized Quiz Generator
 router.route('/personalized-quiz').post(protect, authorize('premium'), generatePersonalizedQuiz);
+
+// --- Teacher & Admin Routes ---
+router.route('/generate-quiz-from-text').post(protect, authorize('teacher', 'school_admin'), generateQuizFromText);
 
 module.exports = router;
