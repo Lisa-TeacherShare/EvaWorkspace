@@ -1,39 +1,45 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const admin = require('../config/firebase');
+const { User } = require('../models/User');
 
-// Protect routes: Checks if user is logged in
-exports.protect = async (req, res, next) => {
+/**
+ * Middleware to protect routes by verifying a Firebase ID token.
+ *
+ * If the token is valid, it decodes it, finds the corresponding user
+ * in the MongoDB database, and attaches the user object to the request (`req.user`).
+ * If the token is missing or invalid, it sends a 401 Unauthorized response.
+ */
+const protect = async (req, res, next) => {
   let token;
 
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith('Bearer ')
   ) {
-    token = req.headers.authorization.split(' ')[1];
+    try {
+      // Extract token from "Bearer <token>"
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify the token using the Firebase Admin SDK
+      const decodedToken = await admin.auth().verifyIdToken(token);
+
+      // Find the user in our database using the Firebase UID
+      req.user = await User.findOne({ firebaseId: decodedToken.uid });
+
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not found.' });
+      }
+
+      // Proceed to the next middleware or route handler
+      next();
+    } catch (error) {
+      console.error('Error while verifying Firebase ID token:', error);
+      res.status(401).json({ message: 'Not authorized, token failed' });
+    }
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id);
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
+    res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
-// Authorize specific roles: Checks user's accountType
-exports.authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.accountType)) {
-      return res.status(403).json({
-        success: false,
-        error: `User role '${req.user.accountType}' is not authorized to access this route`
-      });
-    }
-    next();
-  };
-};
+module.exports = { protect };

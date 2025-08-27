@@ -2,56 +2,94 @@ const Submission = require('../models/Submission');
 const Quiz = require('../models/Quiz');
 const Question = require('../models/Question');
 
-// @desc    Submit answers for a quiz and get it graded
-// @route   POST /api/submissions/:quizId
-// @access  Private (Students)
-exports.submitQuiz = async (req, res, next) => {
+/**
+ * @desc    Submit answers for a quiz
+ * @route   POST /api/submissions
+ * @access  Private (for Students)
+ */
+exports.submitQuiz = async (req, res) => {
   try {
-    const { answers } = req.body; // The student's answers from the frontend
-    const quizId = req.params.quizId;
-    const studentId = req.user.id;
+    const { quizId, answers } = req.body;
+    const studentId = req.user._id;
 
-    // --- Step 1: Fetch the quiz and its correct answers from the database ---
-    const quiz = await Quiz.findById(quizId).populate('questions');
+    // 1. Fetch the quiz and its questions' correct answers
+    const quiz = await Quiz.findById(quizId).populate({
+      path: 'questions',
+      select: 'correctAnswer' // Only select the correctAnswer field
+    });
+
     if (!quiz) {
-      return res.status(404).json({ success: false, error: 'Quiz not found' });
+      return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
 
     let score = 0;
-    const totalQuestions = quiz.questions.length;
+    const detailedResults = [];
 
-    // --- Step 2: Loop through the student's answers and compare them to the correct answers ---
-    for (const studentAnswer of answers) {
-      // Find the corresponding question in the quiz's question list
-      const question = quiz.questions.find(
-        (q) => q._id.toString() === studentAnswer.questionId
-      );
+    // 2. Calculate the score
+    quiz.questions.forEach(question => {
+      const questionId = question._id.toString();
+      const studentAnswer = answers[questionId];
+      const isCorrect = studentAnswer === question.correctAnswer;
 
-      // If the question exists and the answer is correct, increment the score
-      if (question && question.correctAnswerIndex === studentAnswer.selectedAnswerIndex) {
+      if (isCorrect) {
         score++;
       }
-    }
 
-    // --- Step 3: Save the submission details to the database ---
+      detailedResults.push({
+        question: questionId,
+        studentAnswer: studentAnswer || null, // Store null if not answered
+        isCorrect
+      });
+    });
+
+    // 3. Create the submission record
     const submission = await Submission.create({
       quiz: quizId,
       student: studentId,
-      answers,
-      score,
-      totalQuestions,
+      answers: detailedResults,
+      score: score,
+      totalQuestions: quiz.questions.length
     });
 
-    // --- Step 4: Send the final score back to the student ---
     res.status(201).json({
       success: true,
-      message: 'Quiz submitted successfully',
-      data: {
-        score,
-        totalQuestions,
-      },
+      message: 'Quiz submitted successfully.',
+      data: submission
     });
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'Server Error' });
+
+  } catch (error) {
+    console.error('Error submitting quiz:', error);
+    res.status(500).json({ success: false, message: 'Server error while submitting quiz.' });
   }
+};
+
+/**
+ * @desc    Get all submissions for a user or a quiz
+ * @route   GET /api/submissions
+ * @access  Private
+ */
+exports.getSubmissions = async (req, res) => {
+    try {
+        const { quizId, studentId } = req.query;
+        const filter = {};
+
+        if (quizId) {
+            filter.quiz = quizId;
+        }
+        // If the user is a student, only show their own submissions unless they are an admin/teacher
+        if (req.user.kind === 'Student') {
+            filter.student = req.user._id;
+        } else if (studentId) {
+            filter.student = studentId;
+        }
+
+        const submissions = await Submission.find(filter)
+            .populate('quiz', 'title subject')
+            .populate('student', 'name email');
+
+        res.status(200).json({ success: true, count: submissions.length, data: submissions });
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
 };

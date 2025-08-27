@@ -1,71 +1,60 @@
-// eva-backend/models/User.js
-
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
-const UserSchema = new mongoose.Schema({
-  fullName: {
+// Base User Schema Options
+const options = {
+  // discriminatorKey tells Mongoose which field to use to differentiate between user types.
+  discriminatorKey: 'kind',
+  collection: 'users' // Ensure all user types are stored in the 'users' collection
+};
+
+// Base User Schema - fields that ALL users will have
+const userSchema = new mongoose.Schema({
+  firebaseId: {
     type: String,
-    required: [true, 'Please add a full name'],
+    required: [true, 'Firebase ID is required'],
+    unique: true,
+    index: true
   },
   email: {
     type: String,
-    required: [true, 'Please add an email'],
+    required: [true, 'Email is required'],
     unique: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please add a valid email',
-    ],
+    lowercase: true,
+    trim: true
   },
-  password: {
+  // You can add other common fields here, like 'name' or 'profilePictureUrl'
+  name: {
     type: String,
-    required: [true, 'Please add a password'],
-    minlength: 6,
-    select: false, // Don't send back the password by default
-  },
-  accountType: {
-    type: String,
-    enum: ['lite', 'premium', 'school_student', 'teacher', 'school_admin'],
-    required: true,
-  },
-  schoolId: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'School',
-    required: false,
-  },
-  photoUrl: {
-    type: String,
-    default: 'no-photo.jpg',
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// Middleware: Encrypt password using bcrypt before saving
-UserSchema.pre('save', async function (next) {
-  // Only run this function if password was modified (or is new)
-  if (!this.isModified('password')) {
-    next();
+    required: false
   }
+}, options);
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
+// Base User model
+const User = mongoose.model('User', userSchema);
 
-// Method: Sign & get JWT token
-UserSchema.methods.getSignedJwtToken = function () {
-  // THE FIX: We are adding 'accountType: this.accountType' to the token
-  return jwt.sign({ id: this._id, accountType: this.accountType }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
-};
+// Teacher Discriminator - Extends the User schema
+const Teacher = User.discriminator('Teacher', new mongoose.Schema({
+  schoolId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'School'
+    // This will be required for teachers later on
+  }
+  // Add any other fields specific to Teachers
+}));
 
-// Method: Match user entered password to hashed password in database
-UserSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
+// Student Discriminator - Extends the User schema
+const Student = User.discriminator('Student', new mongoose.Schema({
+  // Add any fields specific to Students, e.g., grade, parentId, etc.
+  currentClass: {
+    type: String
+  }
+}));
 
-module.exports = mongoose.model('User', UserSchema);
+// Admin Discriminator - Extends the User schema
+const Admin = User.discriminator('Admin', new mongoose.Schema({
+  // Add any fields specific to Admins
+  permissions: [String]
+}));
+
+
+module.exports = { User, Teacher, Student, Admin };

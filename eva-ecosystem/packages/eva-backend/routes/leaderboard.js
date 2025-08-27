@@ -1,12 +1,12 @@
 const express = require('express');
-const { getLeaderboard } = require('../controllers/leaderboard');
-
-// Import our security middleware
+const { getQuizLeaderboard } = require('../controllers/leaderboard');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// This route is protected, so only logged-in users can see the leaderboard
-router.route('/').get(protect, getLeaderboard);
+// You might make this public later, but for now, let's protect it.
+router.use(protect);
+
+router.get('/quiz/:quizId', getQuizLeaderboard);
 
 module.exports = router;

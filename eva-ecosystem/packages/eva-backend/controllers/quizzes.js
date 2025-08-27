@@ -1,97 +1,79 @@
-// eva-backend/controllers/quizzes.js
 const Quiz = require('../models/Quiz');
-const User = require('../models/User');
+const Question = require('../models/Question');
 
-// @desc    Get all quizzes
-// @route   GET /api/quizzes
-// @access  Private
-exports.getQuizzes = async (req, res, next) => {
+/**
+ * @desc    Create a new quiz
+ * @route   POST /api/quizzes
+ * @access  Private (for Teachers/Admins)
+ */
+exports.createQuiz = async (req, res) => {
   try {
-    const quizzes = await Quiz.find().populate({
-        path: 'createdBy',
-        select: 'fullName'
-    });
+    const { title, subject, questions } = req.body;
 
-    res.status(200).json({
-      success: true,
-      count: quizzes.length,
-      data: quizzes
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'Server Error' });
-  }
-};
-
-// @desc    Get a single quiz for a student to take
-// @route   GET /api/quizzes/:id
-// @access  Private
-exports.getQuiz = async (req, res, next) => {
-  try {
-    const quiz = await Quiz.findById(req.params.id).populate({
-      path: 'questions',
-      select: 'questionText options subject topic imageUrl',
-    });
-
-    if (!quiz) {
-      return res.status(404).json({ success: false, error: 'Quiz not found' });
+    // Basic validation
+    if (!title || !subject || !questions || !Array.isArray(questions)) {
+      return res.status(400).json({ success: false, message: 'Please provide title, subject, and an array of question IDs.' });
     }
 
-    res.status(200).json({
-      success: true,
-      data: quiz,
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'Server Error' });
-  }
-};
+    // Ensure all provided question IDs are valid
+    const foundQuestions = await Question.find({ '_id': { $in: questions } });
+    if (foundQuestions.length !== questions.length) {
+      return res.status(400).json({ success: false, message: 'One or more question IDs are invalid.' });
+    }
 
-// @desc    Create a new quiz
-// @route   POST /api/quizzes
-// @access  Private (Teacher/Admin)
-exports.createQuiz = async (req, res, next) => {
-  try {
-    req.body.createdBy = req.user.id;
-    const quiz = await Quiz.create(req.body);
+    const quiz = await Quiz.create({
+      title,
+      subject,
+      questions,
+      createdBy: req.user._id
+    });
+
     res.status(201).json({
       success: true,
-      data: quiz,
+      data: quiz
     });
-  } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ success: false, message: 'Server error while creating quiz.' });
   }
 };
 
-// @desc    Update quiz
-// @route   PUT /api/quizzes/:id
-// @access  Private (Teacher/Admin)
-exports.updateQuiz = async (req, res, next) => {
-    try {
-        let quiz = await Quiz.findById(req.params.id);
-        if (!quiz) {
-            return res.status(404).json({ success: false, error: 'Quiz not found' });
-        }
-        quiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
-        res.status(200).json({ success: true, data: quiz });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
+/**
+ * @desc    Get all quizzes
+ * @route   GET /api/quizzes
+ * @access  Private
+ */
+exports.getQuizzes = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find()
+      .populate('createdBy', 'name email')
+      .populate('questions'); // This will populate the actual question documents
+
+    res.status(200).json({ success: true, count: quizzes.length, data: quizzes });
+  } catch (error) {
+    console.error('Error fetching quizzes:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching quizzes.' });
+  }
 };
 
-// @desc    Delete quiz
-// @route   DELETE /api/quizzes/:id
-// @access  Private (Teacher/Admin)
-exports.deleteQuiz = async (req, res, next) => {
+/**
+ * @desc    Get a single quiz by its ID
+ * @route   GET /api/quizzes/:id
+ * @access  Private
+ */
+exports.getQuizById = async (req, res) => {
     try {
-        const quiz = await Quiz.findById(req.params.id);
+        const quiz = await Quiz.findById(req.params.id)
+            .populate('createdBy', 'name email')
+            .populate('questions');
+
         if (!quiz) {
-            return res.status(404).json({ success: false, error: 'Quiz not found' });
+            return res.status(404).json({ success: false, message: 'Quiz not found' });
         }
-        await quiz.deleteOne();
-        res.status(200).json({ success: true, data: {} });
-    } catch (err) {
-        res.status(500).json({ success: false, error: 'Server Error' });
+
+        res.status(200).json({ success: true, data: quiz });
+    } catch (error) {
+        console.error('Error fetching quiz by ID:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };

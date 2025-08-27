@@ -1,40 +1,55 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const cors = require('cors'); // Handles Cross-Origin Resource Sharing
+const cors = require('cors');
 const connectDB = require('./config/db');
 
-// Load environment variables from .env file
+// --- Initial Configuration ---
+// Load environment variables from .env file.
+// This should be at the very top.
 dotenv.config();
 
-// Connect to database
+// Connect to the MongoDB database
 connectDB();
 
+// --- App Initialization ---
 const app = express();
 
-// --- Middleware ---
-// 1. Enable CORS for all routes
+// --- Core Middleware ---
+// 1. Enable Cross-Origin Resource Sharing (CORS) for all routes
 app.use(cors());
-// 2. Body parser middleware to accept JSON
+// 2. Enable Express to parse JSON in request bodies
 app.use(express.json());
 
-// --- API Routes ---
-// A simple test route to confirm the server is working
+// --- Route Definitions ---
+// Import all route files
+const authRoutes = require('./routes/auth');
+const schoolRoutes = require('./routes/schools');
+const questionRoutes = require('./routes/questions');
+const quizRoutes = require('./routes/quizzes');
+const submissionRoutes = require('./routes/submission');
+const aiRoutes = require('./routes/ai');
+const leaderboardRoutes = require('./routes/leaderboard');
+const analyticsRoutes = require('./routes/analytics');
+
+// --- API Route Mounting ---
+// Mount all the application routers to their respective paths
+app.use('/api/auth', authRoutes);
+app.use('/api/schools', schoolRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/quizzes', quizRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
+// A simple test route to confirm the server is running
 app.get('/', (req, res) => {
-    res.send('API is running...');
+  res.send('API is running...');
 });
 
-// Mount all the application routers
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/questions', require('./routes/questions'));
-app.use('/api/quizzes', require('./routes/quizzes'));
-app.use('/api/submissions', require('./routes/submission'));
-app.use('/api/ai', require('./routes/ai'));
-app.use('/api/leaderboard', require('./routes/leaderboard'));
-app.use('/api/analytics', require('./routes/analytics'));
-
-
+// --- Server Startup ---
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
