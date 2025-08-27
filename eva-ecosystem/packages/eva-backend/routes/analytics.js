@@ -1,15 +1,11 @@
 const express = require('express');
-const { getQuizAnalytics, getStudentAnalytics } = require('../controllers/analytics');
-
-// Import our security middleware
-const { protect, authorize } = require('../middleware/auth');
+const { getStudentAnalytics } = require('../controllers/analytics');
+const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Protect all routes in this file and restrict to teachers/admins
-router.use(protect, authorize('teacher', 'school_admin'));
+router.use(protect);
 
-router.route('/quiz/:quizId').get(getQuizAnalytics);
-router.route('/student/:studentId').get(getStudentAnalytics);
+router.get('/student/:studentId', getStudentAnalytics);
 
 module.exports = router;

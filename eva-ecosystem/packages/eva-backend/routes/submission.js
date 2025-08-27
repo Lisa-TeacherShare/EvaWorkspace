@@ -1,14 +1,14 @@
 const express = require('express');
-const { submitQuiz } = require('../controllers/submission');
-
-// Include our middleware
+const { submitQuiz, getSubmissions } = require('../controllers/submission');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes in this file will be protected
+// Protect all routes
 router.use(protect);
 
-router.route('/:quizId').post(submitQuiz);
+router.route('/')
+  .post(submitQuiz)
+  .get(getSubmissions);
 
 module.exports = router;
