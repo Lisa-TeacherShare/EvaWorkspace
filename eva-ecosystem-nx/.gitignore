@@ -1,30 +1,9 @@
-# In C:\...\eva-ecosystem-nx\.gitignore (the main one)
+# node modules anywhere
+node_modules/
+**/node_modules/
 
-# See http://help.github.com/ignore-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.pnp.cjs
-
-# testing
-/coverage
-
-# production
-/dist
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-error.log
+# Nx cache
+.nx/
 
 # local env files
 .env
@@ -33,10 +12,12 @@ error.log
 .env.test.local
 .env.production.local
 
-# IDEs and secret files
-# =====================================
-# Secret files specific to our apps
+# secret files
+apps/api/serviceAccountKey.json
+apps/api/serviceAccountKey.json.json
+apps/api/.env
+apps/eva-school-web/.env
+
 /apps/api/.env
 /apps/eva-school-web/.env
 /apps/api/config/serviceAccountKey.json
-# =====================================
