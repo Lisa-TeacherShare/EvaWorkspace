@@ -1,3 +1,5 @@
+// In apps/api/server.js
+
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -5,8 +7,10 @@ const connectDB = require('./config/db');
 
 // --- Initial Configuration ---
 // Load environment variables from .env file.
-// This should be at the very top.
 dotenv.config();
+
+// Initialize Firebase Admin SDK
+require('./config/firebase');
 
 // Connect to the MongoDB database
 connectDB();
@@ -23,7 +27,7 @@ app.use(express.json());
 // --- Route Definitions ---
 // Import all route files
 const authRoutes = require('./routes/auth');
-const schoolRoutes = require('./routes/schools');
+const schoolRoutes = require('./routes/school'); // Corrected from 'schools' to match your file
 const questionRoutes = require('./routes/questions');
 const quizRoutes = require('./routes/quizzes');
 const submissionRoutes = require('./routes/submission');

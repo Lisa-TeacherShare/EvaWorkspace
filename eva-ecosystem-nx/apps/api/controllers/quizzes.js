@@ -1,5 +1,5 @@
-const Quiz = require('../models/Quiz');
-const Question = require('../models/Question');
+const { Quiz } = require('@eva-ecosystem-nx/data-access');
+const { Question } = require('@eva-ecosystem-nx/data-access');
 
 /**
  * @desc    Create a new quiz
@@ -77,3 +77,4 @@ exports.getQuizById = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+

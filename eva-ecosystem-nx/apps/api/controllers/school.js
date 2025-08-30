@@ -1,4 +1,4 @@
-const School = require('../models/School');
+const { School } = require('@eva-ecosystem-nx/data-access');
 const { User } = require('../models/User');
 
 /**
