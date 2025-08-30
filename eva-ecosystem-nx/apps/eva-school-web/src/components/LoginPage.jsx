@@ -1,59 +1,102 @@
-import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+// In apps/evaschools-web/src/components/LoginPage.jsx
 
-// We add `error` to the component's props
-const LoginPage = ({ onLogin, error }) => {
+import React, { useState } from 'react';
+import { auth } from '../firebase'; // Import the auth instance we created
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword 
+} from 'firebase/auth';
+
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    onLogin(email, password);
+    setError('');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Signed Up successfully!', userCredential.user);
+      // TODO: Redirect user or update UI state
+    } catch (err) {
+      console.error("Error signing up:", err.message);
+      setError(err.message);
+    }
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Signed In successfully!', userCredential.user);
+      // TODO: Redirect user or update UI state
+    } catch (err) {
+      console.error("Error signing in:", err.message);
+      setError(err.message);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900">Eva School Portal</h1>
-          <p className="mt-2 text-gray-600">Welcome back! Please sign in to your account.</p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* This block will only render if there is an error message */}
-          {error && (
-            <div className="flex items-center p-3 text-sm text-red-700 bg-red-100 rounded-lg">
-              <AlertCircle className="mr-2" size={20} />
-              {error}
-            </div>
-          )}
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center text-gray-900">Welcome to Eva</h2>
+        <form className="space-y-6">
+          <div>
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email address
+            </label>
             <input
+              id="email"
+              name="email"
               type="email"
+              autoComplete="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              required
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="you@example.com"
             />
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <div>
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
             <input
+              id="password"
+              name="password"
               type="password"
+              autoComplete="current-password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              required
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="••••••••"
             />
           </div>
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition duration-200 shadow-md hover:shadow-lg"
-          >
-            Sign In
-          </button>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              onClick={handleSignIn}
+              className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign In
+            </button>
+            <button
+              type="submit"
+              onClick={handleSignUp}
+              className="w-full px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-transparent rounded-md hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign Up
+            </button>
+          </div>
         </form>
       </div>
     </div>

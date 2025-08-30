@@ -1,5 +1,5 @@
-const Question = require('../models/Question');
-const School = require('../models/School'); // We might need this later for authorization
+const { Question } = require('@eva-ecosystem-nx/data-access');
+const { School } = require('@eva-ecosystem-nx/data-access'); // We might need this later for authorization
 
 /**
  * @desc    Create a new question
@@ -36,3 +36,4 @@ exports.getQuestions = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+

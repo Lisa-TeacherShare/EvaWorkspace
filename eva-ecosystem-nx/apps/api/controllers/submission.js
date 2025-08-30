@@ -1,6 +1,6 @@
-const Submission = require('../models/Submission');
-const Quiz = require('../models/Quiz');
-const Question = require('../models/Question');
+const { Submission } = require('@eva-ecosystem-nx/data-access');
+const { Quiz } = require('@eva-ecosystem-nx/data-access');
+const { Question } = require('@eva-ecosystem-nx/data-access');
 
 /**
  * @desc    Submit answers for a quiz
@@ -93,3 +93,4 @@ exports.getSubmissions = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
