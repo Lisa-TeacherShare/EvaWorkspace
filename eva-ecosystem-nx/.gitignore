@@ -21,3 +21,6 @@ apps/eva-school-web/.env
 /apps/api/.env
 /apps/eva-school-web/.env
 /apps/api/config/serviceAccountKey.json
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

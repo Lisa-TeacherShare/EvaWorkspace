@@ -1,59 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { getQuizzes } from '../api';
-import { PlusCircle } from 'lucide-react';
+// In your apps/eva-school-web/src/components/QuizPage.jsx
+
+import React, { useState } from 'react';
+import { AddQuestionForm } from './AddQuestionForm';
+// ... other imports from your existing file
 
 const QuizPage = () => {
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        const response = await getQuizzes();
-        setQuizzes(response.data);
-      } catch (err) {
-        setError('Failed to fetch quizzes.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuizzes();
-  }, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // ... your existing component logic from QuizPage.jsx
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-bold">Quiz Management</h2>
-          <p className="text-gray-500">View, create, and manage your quizzes here.</p>
-        </div>
-        <button className="flex items-center bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-          <PlusCircle size={20} className="mr-2" />
-          Create New Quiz
+      {/* Your existing page content */}
+      <div className="mt-8">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Add New Question
         </button>
       </div>
 
-      {loading && <p>Loading quizzes...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {!loading && !error && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <ul>
-            {quizzes.map(quiz => (
-              <li key={quiz._id} className="border-b last:border-b-0 py-3 flex justify-between items-center">
-                <div>
-                    <p className="font-semibold text-lg">{quiz.title}</p>
-                    <p className="text-sm text-gray-500">Subject: {quiz.subject} | {quiz.questions.length} Questions</p>
-                </div>
-                <div>
-                    <button className="text-blue-500 hover:underline mr-4">Edit</button>
-                    <button className="text-red-500 hover:underline">Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+      {/* Modal to display the form */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-100 p-4 rounded-lg w-full max-w-lg">
+            <AddQuestionForm onSuccess={() => setIsModalOpen(false)} />
+            <button onClick={() => setIsModalOpen(false)} className="mt-4 w-full text-center text-gray-600 hover:text-gray-800">
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

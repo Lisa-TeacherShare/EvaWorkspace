@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@eva-ecosystem-nx/data-access": ["libs/data-access/src/index.ts"]
+      "@eva-ecosystem-nx/data-access": ["libs/data-access/src/index.ts"],
+      "@eva-ecosystem-nx/feature": ["libs/feature/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
