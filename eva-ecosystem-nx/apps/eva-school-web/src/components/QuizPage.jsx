@@ -1,13 +1,13 @@
-// In your apps/eva-school-web/src/components/QuizPage.jsx
+// Filename: apps/eva-school-web/src/components/QuizPage.jsx
 
 import React, { useState } from 'react';
-import { AddQuestionForm } from './AddQuestionForm';
+import { AddQuestionForm } from './AddQuestionForm'; // Import the new form
 // ... other imports from your existing file
 
 const QuizPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // ... your existing component logic from QuizPage.jsx
+  // ... your existing component logic
 
   return (
     <div>

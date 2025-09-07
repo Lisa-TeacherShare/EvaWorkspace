@@ -38,8 +38,7 @@ export const AddQuestionForm = ({ onSuccess }) => {
       const questionData = {
         questionText,
         subject,
-        // In a full implementation, these would also be form inputs
-        educationLevel: 'Senior',
+        educationLevel: 'Senior', // These would be dropdowns in the final version
         topic: 'General',
         difficulty: 'medium',
         options,
@@ -47,7 +46,7 @@ export const AddQuestionForm = ({ onSuccess }) => {
 
       await createQuestion(questionData);
       alert('Question created successfully!');
-      if (onSuccess) onSuccess(); // This can be used to close a modal or refresh a list
+      if (onSuccess) onSuccess(); // Callback to close modal or refresh list
     } catch (err) {
       setError('Failed to create question. You may not have the required role (Teacher/Admin).');
       console.error(err);
