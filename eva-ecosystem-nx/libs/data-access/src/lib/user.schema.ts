@@ -14,11 +14,11 @@ export interface BaseUser extends Document {
   email: string;
   firstName: string;
   lastName: string;
-  accountType: 'Admin' | 'Teacher' | 'Student';
+  accountType: 'SuperAdmin' | 'SchoolAdmin' | 'Bursar' | 'Teacher' | 'Student';
   createdAt: Date;
 }
 
-export interface Teacher extends BaseUser {
+export interface SchoolUser extends BaseUser {
   schoolId: Schema.Types.ObjectId;
 }
 
@@ -44,9 +44,17 @@ const userSchema = new Schema<BaseUser>({
 
 export const User = model<BaseUser>('User', userSchema);
 
-export const Admin = User.discriminator<BaseUser>('Admin', new Schema({}));
+export const SuperAdminModel = User.discriminator<BaseUser>('SuperAdmin', new Schema({}));
 
-export const TeacherModel = User.discriminator<Teacher>('Teacher', new Schema({
+export const SchoolAdminModel = User.discriminator<SchoolUser>('SchoolAdmin', new Schema({
+  schoolId: { type: Schema.Types.ObjectId, ref: 'School', required: true, index: true },
+}));
+
+export const BursarModel = User.discriminator<SchoolUser>('Bursar', new Schema({
+  schoolId: { type: Schema.Types.ObjectId, ref: 'School', required: true, index: true },
+}));
+
+export const TeacherModel = User.discriminator<SchoolUser>('Teacher', new Schema({
   schoolId: { type: Schema.Types.ObjectId, ref: 'School', required: true, index: true },
 }));
 

@@ -1,79 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import LoginPage from './components/LoginPage';
-import DashboardPage from './components/DashboardPage';
-import { auth } from './firebase'; // Import the auth instance we created
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import DashboardHome from './pages/DashboardHome';
+import Students from './pages/Students';
+import Settings from './pages/Settings';
+import Finance from './pages/Finance';
+import LessonArchitect from './pages/LessonArchitect';
+import CommandBar from './components/CommandBar';
 
 function App() {
-  const [user, setUser] = useState(null); // This will hold the actual Firebase user object
-  const [loading, setLoading] = useState(true); // Used to show a loading state while checking auth
-  const [error, setError] = useState(''); // Used to display login errors
+  const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
 
-  // This `useEffect` hook is the core of the authentication flow.
-  // It sets up a listener that runs whenever the user signs in or out.
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in.
-        // We'll store the essential user info in our state.
-        setUser({
-            email: firebaseUser.email,
-            uid: firebaseUser.uid,
-            name: firebaseUser.displayName || 'Admin User', // Mocking name/role for now
-            role: 'Admin'
-        });
-      } else {
-        // User is signed out.
-        setUser(null);
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandBarOpen(true);
       }
-      // We're done checking, so we can stop showing the loading message.
-      setLoading(false);
-    });
+    };
 
-    // This is a cleanup function that runs when the component is removed
-    // to prevent memory leaks.
-    return () => unsubscribe();
-  }, []); // The empty array [] means this effect only runs once.
-
-  const handleLogin = async (email, password) => {
-    setError(''); // Clear any previous login errors
-    try {
-      // This is the actual Firebase function to sign in a user.
-      await signInWithEmailAndPassword(auth, email, password);
-      // If successful, the onAuthStateChanged listener above will automatically update the user state.
-    } catch (err) {
-      console.error("Firebase Login Error:", err);
-      setError('Failed to sign in. Please check your email and password.');
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      // This is the Firebase function to sign out a user.
-      await signOut(auth);
-      // The onAuthStateChanged listener will automatically set the user state to null.
-    } catch (err) {
-      console.error("Firebase Logout Error:", err);
-    }
-  };
-
-  // While Firebase is checking if you're already logged in, show a simple loading message.
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
-    <div className="antialiased bg-gray-50 text-gray-800 min-h-screen">
-      {user ? (
-        <DashboardPage user={user} onLogout={handleLogout} />
-      ) : (
-        <LoginPage onLogin={handleLogin} error={error} />
-      )}
-    </div>
+    <Router>
+      <AuthProvider>
+        <CommandBar isOpen={isCommandBarOpen} onClose={() => setIsCommandBarOpen(false)} />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard onOpenCommandBar={() => setIsCommandBarOpen(true)} />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<DashboardHome />} />
+            <Route path="students" element={<Students />} />
+            <Route path="finance" element={<Finance />} />
+            <Route path="lessons" element={<LessonArchitect />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </Router>
   );
 }
 
