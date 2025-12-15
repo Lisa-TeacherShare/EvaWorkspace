@@ -1,50 +1,22 @@
 import React, { useState } from 'react';
-import { Plus, DollarSign, Lock, Unlock } from 'lucide-react';
+import { DollarSign, Lock, Unlock } from 'lucide-react';
 import PaymentModal from '../components/PaymentModal';
 import FeeSetupModal from '../components/FeeSetupModal';
-import { formatCurrency, calculateFeeStatus } from '@eva-ecosystem-nx/feature';
-
-// Mock Data
-const MOCK_STUDENTS = [
-    { _id: 'std_1', name: 'Musa Ali', school_id: 'school_1', fees: { term_bill: 50000, amount_paid: 30000, status: 'partial' }, qr_code_string: 'eva://std_1' },
-    { _id: 'std_2', name: 'Joy Okoro', school_id: 'school_1', fees: { term_bill: 50000, amount_paid: 50000, status: 'cleared' }, qr_code_string: 'eva://std_2' },
-    { _id: 'std_3', name: 'Sadiq Yusuf', school_id: 'school_1', fees: { term_bill: 50000, amount_paid: 0, status: 'owing' }, qr_code_string: 'eva://std_3' },
-];
+import { formatCurrency } from '@eva-ecosystem-nx/feature';
+import { useSchool } from '../context/SchoolContext';
 
 export default function Finance() {
-    const [students, setStudents] = useState(MOCK_STUDENTS);
+    const { students, schoolSettings, updateStudentFees, updateTermFee, toggleGatekeeper } = useSchool();
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isFeeSetupModalOpen, setIsFeeSetupModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
-    const [blockDebtors, setBlockDebtors] = useState(false);
 
     const handlePaymentSuccess = (studentId, amount) => {
-        setStudents(students.map(s => {
-            if (s._id === studentId) {
-                const newPaid = s.fees.amount_paid + amount;
-                return {
-                    ...s,
-                    fees: {
-                        ...s.fees,
-                        amount_paid: newPaid,
-                        status: calculateFeeStatus(s.fees.term_bill, newPaid)
-                    }
-                };
-            }
-            return s;
-        }));
+        updateStudentFees(studentId, amount);
     };
 
     const handleFeeSetupSuccess = (amount) => {
-        // In a real app, this would update all students in a class
-        setStudents(students.map(s => ({
-            ...s,
-            fees: {
-                ...s.fees,
-                term_bill: amount,
-                status: calculateFeeStatus(amount, s.fees.amount_paid)
-            }
-        })));
+        updateTermFee(amount);
     };
 
     return (
@@ -60,11 +32,11 @@ export default function Finance() {
                         Set Term Fee
                     </button>
                     <button
-                        onClick={() => setBlockDebtors(!blockDebtors)}
-                        className={`px-4 py-2 rounded-lg flex items-center gap-2 ${blockDebtors ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+                        onClick={toggleGatekeeper}
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 ${schoolSettings.block_debtors_from_cbt ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
                     >
-                        {blockDebtors ? <Lock size={20} /> : <Unlock size={20} />}
-                        {blockDebtors ? 'CBT Access Blocked' : 'CBT Access Open'}
+                        {schoolSettings.block_debtors_from_cbt ? <Lock size={20} /> : <Unlock size={20} />}
+                        {schoolSettings.block_debtors_from_cbt ? 'CBT Access Blocked' : 'CBT Access Open'}
                     </button>
                 </div>
             </div>
@@ -84,7 +56,7 @@ export default function Finance() {
                         {students.map((student) => (
                             <tr key={student._id}>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                                    <div className="text-sm font-medium text-gray-900">{student.firstName} {student.lastName}</div>
                                     <div className="text-sm text-gray-500">{student._id}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

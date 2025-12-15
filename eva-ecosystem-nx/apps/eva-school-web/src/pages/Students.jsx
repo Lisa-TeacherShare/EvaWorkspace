@@ -1,46 +1,14 @@
 import React, { useState } from 'react';
-import { Search, Plus, Filter, MoreVertical, CreditCard } from 'lucide-react';
+import { Search, Plus, Filter, CreditCard } from 'lucide-react';
 import { calculateFeeStatus, formatCurrency } from '@eva-ecosystem-nx/feature';
 import PaymentModal from '../components/PaymentModal';
+import { useSchool } from '../context/SchoolContext';
 
 export default function Students() {
+    const { students, updateStudentFees } = useSchool();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // Mock Data - In a real app, this comes from the API
-    const [students, setStudents] = useState([
-        {
-            _id: '1',
-            firstName: 'Musa',
-            lastName: 'Ali',
-            educationLevel: 'Junior',
-            fees: {
-                term_bill: 5000000, // 50,000 Naira
-                amount_paid: 3000000, // 30,000 Naira
-            }
-        },
-        {
-            _id: '2',
-            firstName: 'Chioma',
-            lastName: 'Okeke',
-            educationLevel: 'Senior',
-            fees: {
-                term_bill: 5000000,
-                amount_paid: 5000000, // Cleared
-            }
-        },
-        {
-            _id: '3',
-            firstName: 'Bayo',
-            lastName: 'Ogunlesi',
-            educationLevel: 'Junior',
-            fees: {
-                term_bill: 5000000,
-                amount_paid: 0, // Owing
-            }
-        }
-    ]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -57,18 +25,7 @@ export default function Students() {
     };
 
     const handlePaymentSuccess = (studentId, amount) => {
-        setStudents(students.map(student => {
-            if (student._id === studentId) {
-                return {
-                    ...student,
-                    fees: {
-                        ...student.fees,
-                        amount_paid: student.fees.amount_paid + amount
-                    }
-                };
-            }
-            return student;
-        }));
+        updateStudentFees(studentId, amount);
     };
 
     const filteredStudents = students.filter(student =>

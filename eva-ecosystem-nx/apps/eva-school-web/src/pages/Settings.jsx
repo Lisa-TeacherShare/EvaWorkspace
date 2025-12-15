@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Lock, Key } from 'lucide-react';
+import { useSchool } from '../context/SchoolContext';
 
 export default function Settings() {
-    const [settings, setSettings] = useState({
-        blockDebtors: false,
+    const { schoolSettings, toggleGatekeeper } = useSchool();
+    const [apiKeys, setApiKeys] = useState({
         openaiKey: '',
         geminiKey: '',
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setSettings(prev => ({
+    const handleApiKeyChange = (e) => {
+        const { name, value } = e.target;
+        setApiKeys(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: value
         }));
     };
 
@@ -56,8 +57,8 @@ export default function Settings() {
                                         name="blockDebtors"
                                         type="checkbox"
                                         className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                        checked={settings.blockDebtors}
-                                        onChange={handleChange}
+                                        checked={schoolSettings.block_debtors_from_cbt}
+                                        onChange={toggleGatekeeper}
                                     />
                                 </div>
                                 <div className="ml-3 text-sm">
@@ -97,8 +98,8 @@ export default function Settings() {
                                         id="openaiKey"
                                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         placeholder="sk-..."
-                                        value={settings.openaiKey}
-                                        onChange={handleChange}
+                                        value={apiKeys.openaiKey}
+                                        onChange={handleApiKeyChange}
                                     />
                                 </div>
                             </div>
@@ -114,8 +115,8 @@ export default function Settings() {
                                         id="geminiKey"
                                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         placeholder="AIza..."
-                                        value={settings.geminiKey}
-                                        onChange={handleChange}
+                                        value={apiKeys.geminiKey}
+                                        onChange={handleApiKeyChange}
                                     />
                                 </div>
                             </div>
