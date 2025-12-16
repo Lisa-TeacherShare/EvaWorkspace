@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateQuestionsFromText } = require('../controllers/ai');
+const { generateQuestions, generateLessonPlan } = require('../controllers/ai');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 // Protect all AI routes
 router.use(protect);
 
-router.post('/generate-questions', generateQuestionsFromText);
+router.post('/generate-questions', generateQuestions);
+router.post('/lesson-plan', generateLessonPlan);
 
 module.exports = router;

@@ -24,32 +24,28 @@ export interface LessonPlan {
 }
 
 /**
- * Simulates generating a structured lesson plan.
+ * Generates a structured lesson plan by calling the backend API.
  */
 export const generateLessonPlan = async (topic: string, subject: string, level: string, duration: string): Promise<LessonPlan> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+        const response = await fetch('/api/ai/lesson-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add auth headers if needed, usually handled by interceptor
+            },
+            body: JSON.stringify({ topic, subject, level, duration }),
+        });
 
-    return {
-        topic,
-        subject,
-        level,
-        duration,
-        objectives: [
-            `Understand the core concepts of ${topic}.`,
-            `Apply ${topic} to real-world scenarios.`,
-            `Analyze different aspects of ${topic}.`
-        ],
-        materials: [
-            'Whiteboard and markers',
-            'Projector (optional)',
-            'Student textbooks',
-            'Worksheets'
-        ],
-        introduction: `Begin by asking students what they already know about ${topic}. Write their answers on the board to create a mind map. Introduce the key vocabulary for the lesson.`,
-        mainActivity: `Divide students into small groups. Assign each group a sub-topic related to ${topic}. Have them research and present their findings to the class. Facilitate a discussion on the connections between the sub-topics.`,
-        assessment: `Distribute a short quiz with 5 multiple-choice questions to assess understanding. Assign a homework task where students must write a one-page summary of what they learned about ${topic}.`
-    };
+        if (!response.ok) {
+            throw new Error('Failed to generate lesson plan');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error generating lesson plan:', error);
+        throw error;
+    }
 };
 
 export const parseCommand = async (input: string): Promise<AIAction> => {

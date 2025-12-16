@@ -20,6 +20,7 @@ app.use(express.json());
 // --- Route Definitions ---
 import authRoutes from './routes/auth';
 import schoolRoutes from './routes/school';
+import studentRoutes from './routes/students';
 import questionRoutes from './routes/questions';
 import quizRoutes from './routes/quizzes';
 import submissionRoutes from './routes/submission';
@@ -30,6 +31,7 @@ import analyticsRoutes from './routes/analytics';
 // --- API Route Mounting ---
 app.use('/api/auth', authRoutes);
 app.use('/api/schools', schoolRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/submissions', submissionRoutes);
